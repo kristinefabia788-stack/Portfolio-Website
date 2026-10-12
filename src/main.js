@@ -128,6 +128,51 @@ const aboutRevealObserver = new IntersectionObserver(([entry], revealObserver) =
 }, { threshold: 0.12 });
 aboutRevealObserver.observe(aboutSection);
 
+const copyEmailButton = $('#copyEmail');
+const copyEmailStatus = $('#copyEmailStatus');
+let copyEmailStatusTimeout;
+
+const showCopyEmailStatus = (message, isSuccess) => {
+  copyEmailStatus.textContent = message;
+  copyEmailStatus.classList.toggle('is-error', !isSuccess);
+  copyEmailStatus.classList.add('is-visible');
+  clearTimeout(copyEmailStatusTimeout);
+  copyEmailStatusTimeout = setTimeout(() => {
+    copyEmailStatus.classList.remove('is-visible');
+  }, 2600);
+};
+
+const fallbackCopyText = (text) => {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.setAttribute('readonly', '');
+  textArea.style.position = 'fixed';
+  textArea.style.opacity = '0';
+  document.body.append(textArea);
+  textArea.select();
+
+  try {
+    return document.execCommand('copy');
+  } finally {
+    textArea.remove();
+  }
+};
+
+copyEmailButton.addEventListener('click', async () => {
+  const email = 'kristine.fabia@ucu.edu.ph';
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(email);
+    } else if (!fallbackCopyText(email)) {
+      throw new Error('Clipboard copy is unavailable.');
+    }
+    showCopyEmailStatus('Email address copied!', true);
+  } catch {
+    showCopyEmailStatus('Could not copy. Please copy the email link.', false);
+  }
+});
+
 // Contact form validation (front-end only)
 $('#form').addEventListener('submit', (e) => {
   e.preventDefault();
